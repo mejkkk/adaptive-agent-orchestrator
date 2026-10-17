@@ -18,6 +18,6 @@ git push origin main
 
 Documentation is published in English primarily (`README.md`, `INSTALLATION.md`) and Thai companion files (`README.th.md`, `INSTALLATION.th.md`).
 
-The operational workflow is available as `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md` and `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_ORIGINAL.txt`. Keep the two versions synchronized if the workflow changes; retain the semantics of all five phases.
+The operational workflow is available as `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md` (English) and `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md` (Thai). Keep the two languages synchronized if the workflow changes; retain the semantics of all five phases.
 
 The authoritative English-language Skill policy remains in `skill/adaptive-agent-orchestrator/`. No prebuilt package is required for installation; use Git clone/pull and copy the directory to a supported Skills location.
