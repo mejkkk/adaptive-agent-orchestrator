@@ -1,6 +1,6 @@
 # คู่มือติดตั้ง Adaptive Agent Orchestrator
 
-**Version 1.0 — ใช้งานจริง** · [English](INSTALLATION.md)
+**Version 1.1 — ใช้งานจริง** · [English](INSTALLATION.md)
 
 ใช้ Source ของ Skill จาก [GitHub Repository](https://github.com/mejkkk/adaptive-agent-orchestrator) โดยตรง ไม่ต้องดาวน์โหลดแพ็กเกจ ZIP
 
@@ -116,6 +116,8 @@ Copy-Item -Path (Join-Path $Source '*') -Destination $ClaudeDest -Recurse -Force
 ## 6. ตรวจสอบและเรียกใช้
 
 ตรวจสอบว่ามีไฟล์ `.../skills/adaptive-agent-orchestrator/SKILL.md` และไฟล์ใน `references/` ครบ ถ้าไม่พบ Skill ให้เริ่ม Session ใหม่หรือ Reload Skills
+
+ใน v1.1 Lead จะเสนอ **Initial Workers** และ **Maximum Workers** เพื่อขออนุมัติ และสามารถ Delegate/Scale ภายใน Maximum แบบสะสมได้โดยไม่ต้องขออนุมัติซ้ำ เมื่อ Delegate แล้ว Lead ห้ามกลับมาทำ Implementation เอง Maximum มากกว่า 5 ต้องอธิบายเหตุผล ดู [CHANGELOG.md](CHANGELOG.md)
 
 ### Standard Prompt Template
 

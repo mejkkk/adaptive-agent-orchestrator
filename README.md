@@ -1,16 +1,16 @@
 # Adaptive Agent Orchestrator
 
-**Version 1.0 — Released** · [ภาษาไทย](README.th.md)
+**Version 1.1 — Released** · [ภาษาไทย](README.th.md)
 
-A reusable orchestration-policy Skill for **Codex, Claude Code, and Antigravity**. Given existing requirements and an implementation plan, the Lead evaluates whether to execute **SOLO**, delegate to **one Worker**, or coordinate **multiple Workers**. It proposes the execution strategy and **waits for explicit user approval** before implementation.
+A reusable orchestration-policy Skill for **Codex, Claude Code, and Antigravity**. Given existing requirements and an implementation plan, the Lead selects **SOLO (0 Workers)** or **DELEGATED (1+ Workers)**; multi-agent and parallel work are execution styles within DELEGATED. It proposes the execution strategy and **waits for explicit user approval** before implementation.
 
 ## How it works
 
 1. **Intake & Review** — Read requirements, implementation plan, and user overrides. Ask only about unresolved critical gaps.
-2. **Strategy & Approval** — Break down tasks and dependencies; recommend SOLO, DELEGATED, or MULTI-AGENT; specify roles, models, effort, permissions, critical checks, and cost/resource limits. Wait for approval.
-3. **Execution** — In SOLO, Lead implements. In delegated modes, Lead coordinates and reviews while Workers implement within explicit task contracts. Parallelize only independent work.
+2. **Strategy & Approval** — Break down tasks and dependencies; propose Initial and Maximum Workers, initial Worker roles/models/effort and a concise approach; perform necessary risk and resource checks internally. Wait for approval.
+3. **Execution** — Lead may move from SOLO to DELEGATED inside an approved positive Maximum. After delegation Lead never returns to implementation. Add Workers only as justified and notify users.
 4. **Verification & Escalation** — Lead reads the reports, checks acceptance criteria, and directly verifies at least one meaningful critical condition. Allow one correction by the original executor, then optionally one attempt by a fresh specialist or stronger model when justified and authorized.
-5. **Final Report** — Report actual artifacts, evidence, verification results, retry history, blockers, and remaining risks.
+5. **Final Report** — Report artifacts, evidence, cumulative Worker usage/scaling, verification, retry history, blockers and risks.
 
 The Skill stores **orchestration policy only**. Project requirements and implementation plans remain external.
 
@@ -18,6 +18,7 @@ The Skill stores **orchestration policy only**. Project requirements and impleme
 
 | Document | Purpose |
 |---|---|
+| [Change history](CHANGELOG.md) | v1.1 changes and earlier history |
 | [Workflow (English)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md) | Complete five-phase operational workflow with Mermaid diagrams |
 | [Workflow (ภาษาไทย)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md) | Complete Thai-language version with the same Mermaid diagrams |
 | [Installation (English)](INSTALLATION.md) | Clone, pull, install, verify and invoke |
@@ -94,4 +95,4 @@ This Skill encodes behavior. Actual agent delegation, sandbox/permission isolati
 
 ## Scope and maintenance
 
-Keep all task-specific requirements outside `skill/adaptive-agent-orchestrator/`. The Skill and its English-language policy references are intentionally unchanged by documentation-only updates.
+Keep all task-specific requirements outside `skill/adaptive-agent-orchestrator/`. v1.1 updates core policy as well as documentation. Record subsequent behavior changes in [CHANGELOG.md](CHANGELOG.md).

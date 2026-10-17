@@ -1,8 +1,8 @@
 # Adaptive Agent Orchestrator Workflow
 
-**Version 1.0 — Released** · **English** · [ภาษาไทย](ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md)
+**Version 1.1 — Released** · **English** · [ภาษาไทย](ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md)
 
-**Adaptive Agent Orchestrator** is a reusable Skill that selects and coordinates SOLO, DELEGATED, and MULTI-AGENT execution. It supports Codex, Claude Code, and Antigravity subject to each platform's actual capabilities.
+**Adaptive Agent Orchestrator** uses two execution modes: SOLO (0 Workers) and DELEGATED (1+ Workers). Multi-agent and parallel work are styles within DELEGATED. It supports Codex, Claude Code and Antigravity subject to real runtime capabilities.
 
 The production workflow has five phases and follows these principles:
 
@@ -20,61 +20,52 @@ These rules are already defined in the `adaptive-agent-orchestrator` Skill's orc
 
 ```mermaid
 flowchart TD
-    U(["User: Grill Me + Plan Mode"]) --> PRE["Final Requirements + Implementation Plan"]
-    PRE --> START["Invoke adaptive-agent-orchestrator<br/>with optional Model / Worker preferences"]
-
+    U(["Requirements + Implementation Plan"]) --> START["Explicitly invoke adaptive-agent-orchestrator"]
     subgraph P1["PHASE 1 — Intake & Review"]
-        START --> REV["Lead: Review Requirements,<br/>Plan, Constraints & User Instructions"]
-        REV --> GAP{"Critical gaps<br/>or conflicts?"}
-        GAP -->|"Yes"| ASK["Ask User to clarify"]
+        START --> REV["Lead: review sources and constraints"]
+        REV --> GAP{"Critical gaps?"}
+        GAP -->|"Yes"| ASK["Clarify with user"]
         ASK --> REV
-        GAP -->|"No"| TASK["Lead: Task Breakdown<br/>& Dependency Analysis"]
+        GAP -->|"No"| TASK["Task breakdown + dependencies"]
     end
-
     subgraph P2["PHASE 2 — Strategy & Approval"]
-        TASK --> DECIDE{"Will Subagents<br/>provide meaningful benefits?"}
-        DECIDE -->|"No"| SOLO["Recommend SOLO<br/>0 Workers"]
-        DECIDE -->|"Yes"| AGENTS["Recommend SUBAGENTS<br/>Count, Roles, Models, Effort"]
-        SOLO --> PROPOSE["Present Execution Strategy<br/>Scope, Cost, Risks, Verification"]
-        AGENTS --> PROPOSE
+        TASK --> CAP["Propose Initial / Maximum Workers<br/>Initial roles, models, effort"]
+        CAP --> PROPOSE["Concise Execution Strategy"]
         PROPOSE --> APPROVE{"USER APPROVAL"}
-        APPROVE -->|"Request changes"| CHANGE["Lead evaluates feedback<br/>and revises proposal"]
-        CHANGE --> DECIDE
-        APPROVE -->|"Cancel"| CANCEL(["Stop"])
+        APPROVE -->|"Request changes"| CAP
+        APPROVE -->|"Cancel"| STOP(["Stop"])
     end
-
     subgraph P3["PHASE 3 — Execution"]
-        APPROVE -->|"Confirmed"| MODE{"Approved Mode"}
-        MODE -->|"SOLO"| EXEC1["Lead implements task"]
-        MODE -->|"SUBAGENTS"| EXEC2["Lead delegates tasks<br/>to approved Workers"]
-        EXEC2 --> WORK["Workers execute tasks<br/>Parallel when independent"]
-        WORK --> REPORT["Deliverables + Worker Reports"]
+        APPROVE -->|"Approved"| INIT{"Initial Workers"}
+        INIT -->|"0"| SOLO["SOLO: Lead implements"]
+        INIT -->|"1+"| DELEG["DELEGATED: Workers implement<br/>Lead orchestrates"]
+        SOLO --> BENEFIT{"Delegation justified<br/>and approved Maximum > 0?"}
+        BENEFIT -->|"Yes; capacity available"| DELEG
+        BENEFIT -->|"No"| CHECK
+        DELEG --> SCALE{"Additional Worker useful?"}
+        SCALE -->|"No"| WORK["Workers implement<br/>Parallel when safe"]
+        SCALE -->|"Yes; within approved envelope"| ADD["Lead creates Worker + notifies user"]
+        ADD --> WORK
+        SCALE -->|"Exceeds envelope"| REAPP["Pause scaling; request re-approval"]
+        REAPP -->|"Approved"| ADD
+        REAPP -->|"Declined"| WORK
+        WORK --> REPORT["Deliverables + Worker reports"]
     end
-
     subgraph P4["PHASE 4 — Verification & Escalation"]
-        EXEC1 --> CHECK["Lead: Review against goals<br/>+ Direct Critical Verification"]
-        REPORT --> CHECK
-        CHECK --> PASS{"Acceptance<br/>Criteria Met?"}
-        PASS -->|"No"| RETRY["Adaptive Retry & Escalation<br/>See detailed workflow"]
+        REPORT --> CHECK["Lead reviews + direct critical check"]
+        CHECK --> PASS{"Acceptance criteria met?"}
+        PASS -->|"No"| RETRY["Bounded retry / fresh Worker if authorized"]
         RETRY --> RESULT{"Resolved?"}
+        RESULT -->|"No or blocked"| DECISION(["Report to user for decision"])
         RESULT -->|"Yes"| FINAL
-        RESULT -->|"No / Blocked"| DECISION(["Report to User<br/>for Decision"])
     end
-
     subgraph P5["PHASE 5 — Final Report"]
-        PASS -->|"Yes"| FINAL["Consolidated Final Report<br/>Evidence, Tests, Status, Risks"]
-        FINAL --> DONE(["Completed / Handoff"])
+        PASS -->|"Yes"| FINAL["Evidence + actual Worker usage + risks"]
+        FINAL --> DONE(["Handoff"])
     end
-
-    classDef lead fill:#dceafe,stroke:#4a82d0,color:#183967
-    classDef worker fill:#dff4e7,stroke:#389960,color:#154e32
-    classDef gate fill:#fff0cf,stroke:#c79840,color:#5c4418
-    class REV,TASK,SOLO,AGENTS,PROPOSE,CHANGE,EXEC2,CHECK,RETRY,FINAL lead
-    class EXEC1,WORK,REPORT worker
-    class GAP,DECIDE,APPROVE,MODE,PASS,RESULT gate
 ```
 
-*Adaptive Agent Orchestrator Workflow — Version 1.0. Phase 4 is expanded in the second diagram below.*
+*Adaptive Agent Orchestrator Workflow — Version 1.1. Phase 4 is expanded in the next diagram.*
 
 ## 2. Responsibilities and Exit Conditions by Phase
 
@@ -98,52 +89,48 @@ When the requirements are already complete, the Lead must not restart Grill Me o
 
 ### Phase 2 — Strategy & Approval
 
-The Lead evaluates whether Subagents would improve quality, reduce execution time or context pressure, or provide useful independent verification. It also considers the coordination overhead and costs.
+Use two execution modes, based on real value, dependencies, coordination overhead and runtime capability:
 
-**Supported execution modes**
-
-| Workers | Mode | Execution responsibility |
+| Workers | Mode | Responsibility |
 |---|---|---|
-| 0 | SOLO | Lead executes the work directly |
-| 1 | DELEGATED | Lead orchestrates and reviews; one Worker executes |
-| 2+ | MULTI-AGENT | Specialized Workers execute, potentially in parallel |
+| 0 | SOLO | Lead implements and verifies |
+| 1+ | DELEGATED | Workers implement; Lead orchestrates and verifies |
 
-The number of Workers must reflect actual needs, including dependencies, context requirements, model costs, and coordination overhead.
+Multi-Agent (2+ Workers) and parallel execution are **styles of DELEGATED**, not separate modes.
 
-Before implementation, the Lead presents an Execution Strategy for user review with the following information:
+The Lead calculates **Initial Workers** and **Maximum Workers**. Maximum is the **cumulative number of distinct Worker instances created during the execution**, including replacements, verification and fresh escalation Workers, not a target to fill. Base it on tasks, dependencies, specialization, uncertainty and credible fallback needs. Use a **soft guardrail of five Workers**: a proposed Maximum > 5 requires a specific explanation of the planned workstreams/contingencies.
 
-| Item | Required information |
+**Concise user-facing Execution Strategy Proposal:**
+
+| Field | Show |
 |---|---|
-| Execution Mode | SOLO / DELEGATED / MULTI-AGENT, with justification |
-| Worker Configuration | Count, roles, models, effort, and responsibilities |
-| Task Assignment | The work assigned to each Worker |
-| Dependencies | Tasks that must wait and tasks that can run in parallel |
-| Scope & Permissions | Allowed operations, files, and systems |
-| Verification Plan | Acceptance criteria and critical checks |
-| Resource Limits | Maximum Workers, retries, budget, and runtime limitations |
-| Escalation Policy | Authorized fallback Worker/model when correction fails |
+| Task / Source | Objective and requirements/plan |
+| Initial Workers | Starting number, may be 0 |
+| Maximum Workers | Cumulative cap and short justification |
+| Initial Worker Configuration | Role, model, effort for each initial Worker (or None) |
+| Execution Approach | Brief division of work, integration and Lead verification |
+| Approval | Approve / Request Changes / Cancel |
 
-**User approval is a mandatory gate**, even when the user invoked the Skill with `start implementation`.
+Do **not** show routine separate fields for Initial Mode, Allowed Modes, Dynamic Scaling, Maximum Concurrency or generic Resource Budget. The Lead still evaluates these operational safeguards, risk, permission boundaries, budgets, critical checks and retry ceilings internally. Disclose material limitations or high-risk operations that affect informed approval.
 
-After approval, the Lead may adjust Worker count only within the approved limits. Any new permissions, scope changes, or resource requirements beyond those limits require renewed approval.
+**User approval is mandatory before implementation.** An approved `Initial = 0, Maximum > 0` preauthorizes later one-way delegation. Maximum = 0 prohibits Worker creation without revised approval.
 
 ### Phase 3 — Execution
 
-| Responsibility | SOLO | DELEGATED / MULTI-AGENT |
+| Responsibility | SOLO | DELEGATED (1+ Workers) |
 |---|---|---|
-| Implementation | Lead | Worker |
-| Task Planning | Lead | Lead |
-| Worker Creation | None | Lead only |
-| Scope Changes | Must remain within the approved plan | Lead decides within the approved plan |
-| Parallel Execution | As supported by the available tools | Use multiple Workers when justified |
-| Review | Lead | Lead |
-| Correction | Lead performs the first correction | Original Worker performs the first correction |
+| Implementation | Lead | Workers only |
+| Task planning | Lead | Lead |
+| Worker creation/scaling | None until justified, approved one-way delegation | Lead only, within cumulative Maximum |
+| Parallel work | When safe and available | For independent tasks when justified |
+| Critical review | Lead | Lead with authorized read-only tools |
+| First correction | Lead (while SOLO) | Original Worker |
 
-In Subagent modes, every delegated task must include a **Task Contract** specifying inputs, scope, allowed files, expected outputs, and acceptance criteria.
+**One-way transition:** Initial = 0 can move SOLO → DELEGATED without another approval if Maximum > 0, capacity remains and delegation adds value. Once a Worker is delegated implementation, Lead must not implement again during the same execution, even with zero active Workers.
 
-Workers may apply technical reasoning to complete their assigned tasks. They must not independently change the architecture, extend requirements, or spawn additional agents.
+**Dynamic scaling:** Lead can add a Worker inside approved cumulative Maximum and unchanged permissions, roles, scope and risk. Every new instance (including replacement/fresh reviewer/escalation) consumes a slot; reusing the same instance does not. Notify the user of new instance, role, requested/verified model and effort (or UNVERIFIED), reason and cumulative count, without pausing for approval. Each Worker receives an explicit Task Contract.
 
-The Lead must maintain clear file ownership to prevent conflicting concurrent edits. If Workers need to touch shared files, appoint an integration owner or define an explicit merge process.
+Concurrency is a safe internal scheduling choice limited by the runtime, shared-file ownership and cumulative ceiling, not a separate approval field. Changes beyond the envelope require explicit renewed approval.
 
 ### Phase 4 — Verification & Adaptive Retry (Detailed)
 
@@ -163,7 +150,7 @@ flowchart TD
 
     BLOCK -->|"Yes"| MODE{"Current Execution Mode"}
     MODE -->|"SOLO"| SELF["Lead fixes issue<br/>1 attempt"]
-    MODE -->|"SUBAGENTS"| SAME["Original Worker fixes issue<br/>1 attempt"]
+    MODE -->|"DELEGATED"| SAME["Original Worker fixes issue<br/>1 attempt"]
 
     SELF --> VERIFY1["Lead Re-verify"]
     SAME --> VERIFY1
@@ -173,7 +160,7 @@ flowchart TD
 
     EVAL --> BENEFIT{"Will a new Specialist /<br/>Stronger Model help?"}
     BENEFIT -->|"No"| USER
-    BENEFIT -->|"Yes"| AUTH{"Escalation authorized<br/>and supported?"}
+    BENEFIT -->|"Yes"| AUTH{"Authorized cumulative Worker<br/>capacity and permissions?"}
 
     AUTH -->|"No"| APPROVAL["Request User Approval<br/>or report Runtime Limit"]
     APPROVAL -->|"Approved & supported"| NEW
@@ -217,7 +204,7 @@ Count retries by the underlying issue or root cause to prevent resetting the cou
 
 If the original Worker already uses the strongest available model, the Lead should consider a new specialist or a genuinely different solution approach rather than an unjustified model upgrade.
 
-In SOLO mode, if the first correction fails and switching to a Subagent is needed, confirm that the user authorized this fallback in the Execution Strategy. If not, obtain approval before creating the Worker.
+In SOLO, a positive approved Maximum already authorizes a useful fallback to a fresh Worker within the same scope and limits; with Maximum = 0, request revised approval first. Once delegated, Lead must not resume implementation.
 
 **Time-control rule:** If the failure is caused by permissions, environment constraints, missing inputs, external services, or runtime limitations, stop retries that cannot reasonably resolve the blocker and report it directly to the user.
 
@@ -228,7 +215,8 @@ Once execution ends, the Lead summarizes both the deliverables and the verifiabl
 | Section | Required content |
 |---|---|
 | Execution Summary | Objective and final outcome |
-| Execution Mode | SOLO or Subagents, including Workers actually used |
+| Execution Mode | Final SOLO or DELEGATED |
+| Worker Usage | Initial / Maximum / actual cumulative instances, scaling reasons |
 | Model & Effort | Actual model/effort settings to the extent verifiable |
 | Deliverables | Files, code, configurations, and documentation |
 | Acceptance Criteria | Passed / Failed / Not Verified |
@@ -243,26 +231,25 @@ If acceptance criteria are not met, the Lead must not report the task as Complet
 
 ## 3. Core Skill Policies
 
-The following policies are defined in `SKILL.md` and the Skill's reference documents.
+The authoritative rules are in `SKILL.md` and its policy references.
 
 | Policy | Rule |
 |---|---|
-| Explicit Invocation | Start the Skill when the user explicitly invokes it |
-| Requirement Reuse | Reuse available requirements and plans; avoid unnecessary repeated questions |
-| Adaptive Execution | Choose SOLO or Subagents based on actual benefits |
-| Model Selection | Treat user preferences as starting points; justify proposed alternatives |
-| Mandatory Approval | Require approval of the Execution Strategy before implementation |
-| Lead Responsibilities | Plan and review; implement only in SOLO |
-| Dynamic Workers | Adjust Worker allocation within the user's approved bounds |
-| Parallel Execution | Parallelize independent, suitable tasks |
-| Worker Isolation | Workers stay within scope and do not delegate or extend tasks independently |
-| Lead Verification | Read reports and directly verify at least one meaningful critical condition |
-| Adaptive Retry | One original-executor correction; optionally one fresh-worker correction |
-| Failure Stop | Stop after retry limits or when an unresolvable blocker is identified |
-| Safety & Permissions | Obey runtime permissions; seek separate approval for high-risk actions |
-| Evidence-Based Reporting | Report actual evidence and never invent tests or outcomes |
+| Explicit Invocation | User explicitly invokes the Skill |
+| Execution Modes | SOLO (0 Workers) or DELEGATED (1+); Multi-Agent is a style |
+| Mandatory Approval | Approve strategy before implementation |
+| Worker Capacity | Initial + cumulative Maximum; Soft Guardrail of five |
+| One-way Delegation | SOLO → DELEGATED allowed inside cap; no return to Lead implementation |
+| Dynamic Scaling | Justified additional Workers inside approved envelope; notify user |
+| Parallelism | Use independent tasks safely subject to runtime limits |
+| Lead/Worker Boundary | Lead orchestrates and directly checks; Workers implement after delegation |
+| Model/Effort | Follow hard constraints, verify actual runtime support |
+| Verification | Direct Lead critical check and acceptance evidence |
+| Retry | One original correction; at most one conditional fresh-worker correction |
+| Risk & Permissions | High-risk operations require separate explicit approval |
+| Final Reporting | Include artifacts, cumulative Worker usage, scaling, verification and risks |
 
-**Important:** The Skill specifies behavioral rules and a common workflow. Lead/Worker permissions, actual Subagent spawning, and model/effort selection depend on Codex, Claude Code, or Antigravity. If the runtime cannot support a required capability, the Lead must explain the limitation and request approval for an alternative. It must not silently switch execution modes.
+A Skill does not create native Subagents, permissions or model configurations. If the runtime cannot perform requested delegation, disclose the limitation and ask for a viable alternative; never pretend Workers exist or revert to Lead implementation after delegation.
 
 ## 4. Example Skill Invocation
 

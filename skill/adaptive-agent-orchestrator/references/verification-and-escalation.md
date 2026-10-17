@@ -10,7 +10,7 @@ The Lead must:
 4. For high-risk work, require verification of *every applicable critical/safety criterion* and appropriate independent test evidence. One direct check is only a minimum, never a blanket sign-off.
 5. If direct Lead inspection is technically unavailable, report `LEAD DIRECT CHECK: NOT VERIFIED`, delegate independent verification when supported and approved, and explain the effect on acceptance. Never represent a Worker's report as the Lead's own check.
 
-Do not run production-altering, state-changing, or privilege-escalating checks directly as Lead in delegated mode. Delegate with appropriate authorization. Testing may create output or change state; classify it before attempting.
+Do not run production-altering, state-changing, or privilege-escalating checks directly as Lead after delegation, including when no Workers remain active. Delegate with appropriate authorization. Testing may create output or change state; classify it before attempting.
 
 ## Per-root-cause retry state machine
 
@@ -31,7 +31,8 @@ Do not run production-altering, state-changing, or privilege-escalating checks d
 
 - Only if the failed criterion persists and a *distinct* specialist, independent approach, or more capable model is likely to address the actual cause: propose/spawn a **fresh Worker**, authorized for a **single correction attempt**.
 - Prefer a better-suited role/model/effort that exists in the actual platform; don't claim an unavailable "higher" level. Give the new Worker the approved task scope, reproducible failure evidence, and an independent diagnosis brief. Avoid having it blindly repeat the same patch.
-- Respect approval of the extra worker, model/effort hard constraints, permission ceiling, budget, and maximum worker count. If not already authorized, ask before spawning. In approved SOLO, a Worker fallback requires prior authorization in the strategy or new approval now.
+- Count each fresh correction Worker against the **cumulative Maximum Approved Workers**, including Workers replacing inactive ones. Respect model/effort hard constraints, permissions, scope, resource limits and real runtime capabilities. If capacity is exhausted or any boundary is exceeded, request approval **before spawning**.
+- In approved SOLO, **Maximum Workers > 0** preauthorizes a justified fresh-Worker correction within the envelope; with Maximum = 0, obtain revised approval first. Once this Worker is delegated, Lead never resumes implementation for the current execution.
 - After the one attempt, Lead reverifies. If still failing, **stop and report to user**; no third automatic attempt for the same root cause.
 - If a fresh Worker is clearly unhelpful, prohibited, impossible, or disproportionately expensive, skip it and escalate to the user directly.
 

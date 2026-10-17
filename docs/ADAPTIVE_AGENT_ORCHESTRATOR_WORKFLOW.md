@@ -1,8 +1,8 @@
 # Adaptive Agent Orchestrator Workflow
 
-**Version 1.0 — Released** · **ภาษาไทย** · [English](ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md)
+**Version 1.1 — Released** · **ภาษาไทย** · [English](ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md)
 
-**Adaptive Agent Orchestrator** เป็น Skill ที่ใช้งานจริงสำหรับเลือกและควบคุมการทำงานแบบ SOLO, DELEGATED และ MULTI-AGENT โดยรองรับ Codex, Claude Code และ Antigravity ตามความสามารถของแต่ละแพลตฟอร์ม
+**Adaptive Agent Orchestrator** เป็น Skill ที่รองรับ 2 Execution Modes คือ SOLO (0 Workers) และ DELEGATED (1+ Workers) โดย Multi-Agent/Parallel เป็น Execution Style ภายใน DELEGATED ใช้งานกับ Codex, Claude Code และ Antigravity ตามความสามารถของ Runtime
 
 Workflow เวอร์ชันใช้งานจริงแบ่งเป็น 5 Phases โดยมีหลักการสำคัญดังนี้
 
@@ -20,61 +20,52 @@ Workflow เวอร์ชันใช้งานจริงแบ่งเ�
 
 ```mermaid
 flowchart TD
-    U(["User: Grill Me + Plan Mode"]) --> PRE["Final Requirements + Implementation Plan"]
-    PRE --> START["Invoke adaptive-agent-orchestrator<br/>with optional Model / Worker preferences"]
-
+    U(["Requirements + Implementation Plan"]) --> START["Explicitly invoke adaptive-agent-orchestrator"]
     subgraph P1["PHASE 1 — Intake & Review"]
-        START --> REV["Lead: Review Requirements,<br/>Plan, Constraints & User Instructions"]
-        REV --> GAP{"Critical gaps<br/>or conflicts?"}
-        GAP -->|"Yes"| ASK["Ask User to clarify"]
+        START --> REV["Lead: review sources and constraints"]
+        REV --> GAP{"Critical gaps?"}
+        GAP -->|"Yes"| ASK["Clarify with user"]
         ASK --> REV
-        GAP -->|"No"| TASK["Lead: Task Breakdown<br/>& Dependency Analysis"]
+        GAP -->|"No"| TASK["Task breakdown + dependencies"]
     end
-
     subgraph P2["PHASE 2 — Strategy & Approval"]
-        TASK --> DECIDE{"Will Subagents<br/>provide meaningful benefits?"}
-        DECIDE -->|"No"| SOLO["Recommend SOLO<br/>0 Workers"]
-        DECIDE -->|"Yes"| AGENTS["Recommend SUBAGENTS<br/>Count, Roles, Models, Effort"]
-        SOLO --> PROPOSE["Present Execution Strategy<br/>Scope, Cost, Risks, Verification"]
-        AGENTS --> PROPOSE
+        TASK --> CAP["Propose Initial / Maximum Workers<br/>Initial roles, models, effort"]
+        CAP --> PROPOSE["Concise Execution Strategy"]
         PROPOSE --> APPROVE{"USER APPROVAL"}
-        APPROVE -->|"Request changes"| CHANGE["Lead evaluates feedback<br/>and revises proposal"]
-        CHANGE --> DECIDE
-        APPROVE -->|"Cancel"| CANCEL(["Stop"])
+        APPROVE -->|"Request changes"| CAP
+        APPROVE -->|"Cancel"| STOP(["Stop"])
     end
-
     subgraph P3["PHASE 3 — Execution"]
-        APPROVE -->|"Confirmed"| MODE{"Approved Mode"}
-        MODE -->|"SOLO"| EXEC1["Lead implements task"]
-        MODE -->|"SUBAGENTS"| EXEC2["Lead delegates tasks<br/>to approved Workers"]
-        EXEC2 --> WORK["Workers execute tasks<br/>Parallel when independent"]
-        WORK --> REPORT["Deliverables + Worker Reports"]
+        APPROVE -->|"Approved"| INIT{"Initial Workers"}
+        INIT -->|"0"| SOLO["SOLO: Lead implements"]
+        INIT -->|"1+"| DELEG["DELEGATED: Workers implement<br/>Lead orchestrates"]
+        SOLO --> BENEFIT{"Delegation justified<br/>and approved Maximum > 0?"}
+        BENEFIT -->|"Yes; capacity available"| DELEG
+        BENEFIT -->|"No"| CHECK
+        DELEG --> SCALE{"Additional Worker useful?"}
+        SCALE -->|"No"| WORK["Workers implement<br/>Parallel when safe"]
+        SCALE -->|"Yes; within approved envelope"| ADD["Lead creates Worker + notifies user"]
+        ADD --> WORK
+        SCALE -->|"Exceeds envelope"| REAPP["Pause scaling; request re-approval"]
+        REAPP -->|"Approved"| ADD
+        REAPP -->|"Declined"| WORK
+        WORK --> REPORT["Deliverables + Worker reports"]
     end
-
     subgraph P4["PHASE 4 — Verification & Escalation"]
-        EXEC1 --> CHECK["Lead: Review against goals<br/>+ Direct Critical Verification"]
-        REPORT --> CHECK
-        CHECK --> PASS{"Acceptance<br/>Criteria Met?"}
-        PASS -->|"No"| RETRY["Adaptive Retry & Escalation<br/>See detailed workflow"]
+        REPORT --> CHECK["Lead reviews + direct critical check"]
+        CHECK --> PASS{"Acceptance criteria met?"}
+        PASS -->|"No"| RETRY["Bounded retry / fresh Worker if authorized"]
         RETRY --> RESULT{"Resolved?"}
+        RESULT -->|"No or blocked"| DECISION(["Report to user for decision"])
         RESULT -->|"Yes"| FINAL
-        RESULT -->|"No / Blocked"| DECISION(["Report to User<br/>for Decision"])
     end
-
     subgraph P5["PHASE 5 — Final Report"]
-        PASS -->|"Yes"| FINAL["Consolidated Final Report<br/>Evidence, Tests, Status, Risks"]
-        FINAL --> DONE(["Completed / Handoff"])
+        PASS -->|"Yes"| FINAL["Evidence + actual Worker usage + risks"]
+        FINAL --> DONE(["Handoff"])
     end
-
-    classDef lead fill:#dceafe,stroke:#4a82d0,color:#183967
-    classDef worker fill:#dff4e7,stroke:#389960,color:#154e32
-    classDef gate fill:#fff0cf,stroke:#c79840,color:#5c4418
-    class REV,TASK,SOLO,AGENTS,PROPOSE,CHANGE,EXEC2,CHECK,RETRY,FINAL lead
-    class EXEC1,WORK,REPORT worker
-    class GAP,DECIDE,APPROVE,MODE,PASS,RESULT gate
 ```
 
-*Adaptive Agent Orchestrator Workflow — Version 1.0 — Phase 4 มีรายละเอียดการ Retry/Escalation ในแผนภาพถัดไป*
+*Adaptive Agent Orchestrator Workflow — Version 1.1 — Phase 4 มีรายละเอียด Retry/Escalation ในแผนภาพถัดไป*
 
 ## 2. หน้าที่ในแต่ละ Phase
 
@@ -98,52 +89,48 @@ Lead ต้องรับข้อมูลจาก Requirement File, Implemen
 
 ### Phase 2 — Strategy & Approval
 
-Lead ต้องประเมินว่าการใช้ Subagent ช่วยเพิ่มคุณภาพ ลดเวลา ลดภาระ Context หรือเพิ่มประโยชน์จากการตรวจสอบอย่างอิสระได้หรือไม่ โดยพิจารณา Overhead และค่าใช้จ่ายประกอบ
-
-**Execution Modes ที่รองรับ**
+ใช้เพียง **2 Execution Modes** โดยพิจารณาประโยชน์จริง, Dependencies, Overhead และ Runtime Capability
 
 | Workers | Mode | หน้าที่ |
 |---|---|---|
-| 0 | SOLO | Lead ทำเอง |
-| 1 | DELEGATED | Lead + Worker |
-| 2+ | MULTI-AGENT | Parallel / Specialist |
+| 0 | SOLO | Lead ทำ Implementation และ Verification |
+| 1+ | DELEGATED | Workers ทำ Implementation; Lead ประสานงานและตรวจสอบ |
 
-จำนวน Worker ให้เลือกจากความจำเป็นจริง โดยคำนึงถึง Dependency, Context, Model Cost และ Coordination Overhead
+Multi-Agent (2+ Workers) และ Parallel Execution เป็น **Execution Styles ภายใน DELEGATED** ไม่ใช่ Mode แยก
 
-เมื่อได้ Execution Strategy แล้ว ต้องแสดงข้อมูลให้ผู้ใช้ Review ก่อนเริ่ม Implementation โดยข้อมูลที่เสนอควรมีดังนี้
+Lead ประเมิน **Initial Workers** และ **Maximum Workers** โดย Maximum คือ **จำนวน Worker Instances ที่สร้างสะสมตลอด Execution** รวม Replacement, Verification และ Fresh Escalation Workers ไม่ใช่จำนวนที่ต้องสร้างให้ครบ ให้ประเมินจาก Task Breakdown, Dependencies, Specialist, ความไม่แน่นอน และ Fallback ที่คาดการณ์ได้ ใช้ **Soft Guardrail 5 Workers**; หาก Maximum > 5 ต้องอธิบายเหตุผลจาก Workstreams/ความจำเป็นจริง
 
-| ข้อมูล | สิ่งที่ต้องแสดง |
+**Execution Strategy ที่แสดงให้ผู้ใช้แบบกระชับ:**
+
+| ข้อมูล | สิ่งที่แสดง |
 |---|---|
-| Execution Mode | SOLO / DELEGATED / MULTI-AGENT พร้อมเหตุผล |
-| Worker Configuration | จำนวน, Role, Model, Effort และหน้าที่ |
-| Task Assignment | งานที่แต่ละ Worker รับผิดชอบ |
-| Dependencies | งานใดต้องรอ งานใด Parallel ได้ |
-| Scope & Permissions | สิทธิ์และขอบเขตไฟล์หรือระบบ |
-| Verification Plan | Acceptance Criteria และ Critical Checks |
-| Resource Limits | Worker สูงสุด, Retry, Budget และข้อจำกัด Runtime |
-| Escalation Policy | Worker/Model สำรองที่อนุญาตเมื่อแก้งานไม่สำเร็จ |
+| Task / Source | วัตถุประสงค์และ Requirement/Plan |
+| Initial Workers | จำนวนเริ่มต้น เป็น 0 ได้ |
+| Maximum Workers | จำนวนสูงสุดแบบสะสม พร้อมเหตุผล |
+| Initial Worker Configuration | Role, Model, Effort ของ Initial Workers (หรือ None) |
+| Execution Approach | แบ่งงาน Integration และแผนตรวจสอบโดยสรุป |
+| Approval | Approve / Request Changes / Cancel |
 
-**User Approval เป็น Mandatory Gate** แม้ผู้ใช้จะเรียก Skill พร้อมคำสั่งว่า `start implementation` แล้วก็ตาม
+ไม่ต้องแสดง Initial Mode, Allowed Modes, Dynamic Scaling, Maximum Concurrency หรือ Resource Budget เป็นช่องข้อมูลปกติ แต่ Lead ต้องประเมิน Scope, Permissions, Budget, Critical Checks, Retry และความเสี่ยงภายใน และแจ้งข้อจำกัดสำคัญที่มีผลต่อการตัดสินใจ
 
-หลังอนุมัติ Lead สามารถปรับจำนวน Worker ภายในขอบเขตที่อนุมัติไว้ได้ หากต้องเพิ่มสิทธิ์ เปลี่ยน Scope หรือใช้ Resource เกินขอบเขต ต้องขออนุมัติใหม่
+**ต้องได้รับ User Approval ก่อน Implementation** ค่า `Initial = 0, Maximum > 0` อนุญาตให้ Delegate ภายหลังภายในขอบเขตที่อนุมัติ แต่ Maximum = 0 ห้ามสร้าง Worker จนกว่าจะขออนุมัติใหม่
 
 ### Phase 3 — Execution
 
-| | SOLO | DELEGATED / MULTI-AGENT |
+| หน้าที่ | SOLO | DELEGATED (1+ Workers) |
 |---|---|---|
-| Implementation | Lead ทำเอง | Worker ทำ |
+| Implementation | Lead | Workers เท่านั้น |
 | Task Planning | Lead | Lead |
-| Worker Creation | ไม่มี | Lead เท่านั้น |
-| Scope Changes | ต้องอยู่ในแผนที่อนุมัติ | Lead ตัดสินใจภายในแผน |
-| Parallel Execution | ตามเครื่องมือที่มี | ใช้ Worker หลายตัวเมื่อเหมาะสม |
-| Review | Lead | Lead |
-| Correction | Lead แก้เองในรอบแรก | ส่ง Worker เดิมแก้ |
+| Worker Creation / Scaling | ยังไม่ใช้ Worker จนกว่า Delegate ตามขอบเขตที่อนุมัติ | Lead เท่านั้น ภายใน Maximum แบบสะสม |
+| Parallel | ตามเครื่องมือและความปลอดภัย | ทำพร้อมกันเมื่อแยกงานได้และคุ้มค่า |
+| Critical Review | Lead | Lead ใช้ Read-only Tools ที่อนุญาต |
+| First Correction | Lead (ขณะยัง SOLO) | Original Worker |
 
-ในโหมด Subagents ต้องมี Task Contract ระบุ Input, Scope, Allowed Files, Expected Output และ Acceptance Criteria แยกแต่ละ Task
+**One-way Delegation:** งานที่ Initial = 0 สามารถ SOLO → DELEGATED ได้โดยไม่ขออนุมัติใหม่ หาก Maximum > 0 และการ Delegate มีประโยชน์และยังมี Capacity เมื่อเริ่ม Delegate Implementation แล้ว Lead ห้ามกลับมาทำ Implementation อีกใน Execution เดิม แม้ไม่มี Worker ทำงานอยู่
 
-Worker สามารถใช้ Technical Reasoning ในการแก้ปัญหาได้ แต่ห้ามเปลี่ยน Architecture, ขยาย Requirement หรือ Spawn Agent เพิ่มเอง
+**Dynamic Scaling:** Lead เพิ่ม Worker ภายใน Maximum แบบสะสมและ Scope, Roles, Permissions, Risks เดิมได้เอง Worker ใหม่ทุกตัว (รวม Replacement, Reviewer, Escalation) นับรวมจำนวนสะสม แต่ Worker Instance เดิมที่นำมาใช้ใหม่ไม่นับซ้ำ ต้องแจ้งผู้ใช้ Instance, Role, Model/Effort ที่ยืนยันได้ (หรือ UNVERIFIED), เหตุผล และจำนวนสะสม โดยไม่รออนุมัติอีก และต้องให้ Task Contract แก่ Worker ทุกตัว
 
-Lead ต้องรักษา File Ownership ให้ชัดเจนเพื่อป้องกัน Worker หลายตัวแก้ไฟล์เดียวกันพร้อมกัน หากจำเป็นต้องแก้ไฟล์ร่วมกันให้กำหนด Integration Owner หรือวิธี Merge ที่ชัดเจน
+จำนวนที่ทำงานพร้อมกันเป็นการตัดสินใจภายในตาม Runtime, Dependencies, File Ownership และ Maximum ที่อนุมัติ ไม่ต้องมีช่อง Maximum Concurrent แยก หากเกินขอบเขตต้องขออนุมัติใหม่
 
 ### Phase 4 — Verification & Adaptive Retry (รายละเอียด)
 
@@ -163,7 +150,7 @@ flowchart TD
 
     BLOCK -->|"Yes"| MODE{"Current Execution Mode"}
     MODE -->|"SOLO"| SELF["Lead fixes issue<br/>1 attempt"]
-    MODE -->|"SUBAGENTS"| SAME["Original Worker fixes issue<br/>1 attempt"]
+    MODE -->|"DELEGATED"| SAME["Original Worker fixes issue<br/>1 attempt"]
 
     SELF --> VERIFY1["Lead Re-verify"]
     SAME --> VERIFY1
@@ -173,7 +160,7 @@ flowchart TD
 
     EVAL --> BENEFIT{"Will a new Specialist /<br/>Stronger Model help?"}
     BENEFIT -->|"No"| USER
-    BENEFIT -->|"Yes"| AUTH{"Escalation authorized<br/>and supported?"}
+    BENEFIT -->|"Yes"| AUTH{"Authorized cumulative Worker<br/>capacity and permissions?"}
 
     AUTH -->|"No"| APPROVAL["Request User Approval<br/>or report Runtime Limit"]
     APPROVAL -->|"Approved & supported"| NEW
@@ -217,7 +204,7 @@ Lead ต้องอ่าน Report แล้วเปรียบเทีย�
 
 หาก Worker ใช้ Model ระดับสูงสุดอยู่แล้ว Lead ควรพิจารณา Agent ที่มีความเชี่ยวชาญหรือแนวทางแก้ไขต่างออกไป แทนการเพิ่ม Model แบบไม่มีประโยชน์
 
-ใน SOLO Mode ถ้าจำเป็นต้องเปลี่ยนไปใช้ Subagent หลังแก้เองไม่ผ่าน ต้องตรวจว่าผู้ใช้อนุมัติ Fallback นี้ไว้ใน Execution Strategy หรือไม่ หากยังไม่อนุมัติ ต้องขออนุมัติก่อนสร้าง Worker
+ใน SOLO หาก Retry ไม่ผ่าน สามารถ Delegate ให้ Fresh Worker ได้ทันทีเมื่อ Maximum Workers ที่อนุมัติมากกว่า 0 และยังเหลือ Capacity ภายใน Scope/Permissions เดิม; ถ้า Maximum = 0 ต้องขออนุมัติใหม่ เมื่อ Delegate แล้ว Lead ห้ามกลับมาทำ Implementation อีก
 
 **ข้อเสนอเพื่อควบคุมเวลา:** หากพบว่า Failure เกิดจาก Permission, Environment, Missing Input, External Service หรือข้อจำกัดของ Runtime ให้หยุด Retry ที่ไม่มีโอกาสแก้ปัญหา และรายงานผู้ใช้โดยตรง
 
@@ -228,7 +215,8 @@ Lead ต้องอ่าน Report แล้วเปรียบเทีย�
 | หัวข้อ | ข้อมูลใน Final Report |
 |---|---|
 | Execution Summary | เป้าหมายและผลลัพธ์สุดท้าย |
-| Execution Mode | SOLO หรือ Subagents พร้อม Worker ที่ใช้จริง |
+| Execution Mode | SOLO หรือ DELEGATED ณ ตอนจบ |
+| Worker Usage | Initial / Maximum / สร้างจริงสะสม และเหตุผลในการ Scaling |
 | Model & Effort | Model/Effort ที่ใช้งานจริงเท่าที่ตรวจสอบได้ |
 | Deliverables | Files, Code, Configuration, Documentation |
 | Acceptance Criteria | Passed / Failed / Not Verified |
@@ -243,26 +231,25 @@ Lead ต้องอ่าน Report แล้วเปรียบเทีย�
 
 ## 3. นโยบายหลักของ Skill
 
-ตารางนี้สรุปกฎการทำงานที่กำหนดไว้ใน `SKILL.md` และ Reference Policies ของ Skill
+รายละเอียด Policy จริงอยู่ใน `SKILL.md` และ Reference Policies
 
 | Policy | กฎ |
 |---|---|
-| Explicit Invocation | เริ่ม Skill เมื่อผู้ใช้เรียกใช้งาน |
-| Requirement Reuse | ใช้ Requirement/Plan ที่มีอยู่ ไม่ถามซ้ำโดยไม่จำเป็น |
-| Adaptive Execution | เลือก SOLO หรือ Subagents จากประโยชน์ที่ได้รับ |
-| Model Selection | ใช้ User Preference เป็นค่าเริ่มต้น ปรับได้พร้อมเหตุผล |
-| Mandatory Approval | ต้องอนุมัติ Execution Strategy ก่อนเริ่มงาน |
-| Lead Responsibilities | วางแผนและ Review; ทำ Implementation ได้เฉพาะ SOLO |
-| Dynamic Workers | เพิ่ม Worker ภายในขอบเขตที่ผู้ใช้อนุมัติ |
-| Parallel Execution | Parallel เฉพาะงานที่เป็นอิสระและเหมาะสม |
-| Worker Isolation | Worker ทำตาม Scope ห้ามขยายงานหรือ Delegate เอง |
-| Lead Verification | ตรวจ Report และของจริงอย่างน้อย 1 Critical Check |
-| Adaptive Retry | ผู้ทำเดิมแก้ 1 รอบ และ Escalate ได้อีก 1 รอบเมื่อเหมาะสม |
-| Failure Stop | หยุดเมื่อเกิน Retry Limit หรือพบ Blocker ที่แก้เองไม่ได้ |
-| Safety & Permissions | ต้องปฏิบัติตาม Permission ของ Runtime และขออนุมัติงานเสี่ยงสูงแยกต่างหาก |
-| Evidence-Based Reporting | รายงานผลตามหลักฐานจริง ไม่อ้างผลทดสอบที่ไม่ได้ทำ |
+| Explicit Invocation | ต้องเรียก Skill อย่างชัดเจน |
+| Execution Modes | SOLO (0 Workers) หรือ DELEGATED (1+); Multi-Agent เป็น Style |
+| Mandatory Approval | ผู้ใช้อนุมัติ Strategy ก่อน Implementation |
+| Worker Capacity | Initial + Maximum แบบสะสม; Soft Guardrail 5 Workers |
+| One-way Delegation | SOLO → DELEGATED ภายในขอบเขต; Lead ห้ามกลับมา Implement |
+| Dynamic Scaling | Lead เพิ่ม Worker เมื่อจำเป็นภายใน Maximum และแจ้งผู้ใช้ |
+| Parallelism | Parallel เฉพาะงานอิสระและ Runtime รองรับ |
+| Lead/Worker Boundary | หลัง Delegate ให้ Workers Implement และ Lead ตรวจผล |
+| Model/Effort | เคารพ Hard Constraints และตรวจ Runtime จริง |
+| Verification | Lead ตรวจ Critical Check โดยตรงและมี Evidence |
+| Retry | ผู้ทำเดิมแก้ 1 ครั้ง และ Fresh Worker อีก 1 ครั้งเมื่อเหมาะสม |
+| Risk & Permissions | งานเสี่ยงสูงต้องได้รับอนุมัติแยก |
+| Final Reporting | สรุป Artifact, Worker ที่สร้างสะสม, Scaling, Evidence และความเสี่ยง |
 
-**เรื่องที่สำคัญ:** Skill นี้จะเป็นตัวกำหนดพฤติกรรมและ Workflow กลาง ส่วนสิทธิ์ของ Lead/Worker, การสร้าง Subagent จริง และ Model/Effort ที่เลือกได้ยังขึ้นกับ Codex, Claude Code หรือ Antigravity หาก Runtime ไม่รองรับเงื่อนไขที่จำเป็น Lead ต้องแจ้งข้อจำกัดและเสนอทางเลือกให้ผู้ใช้อนุมัติ ห้ามเปลี่ยน Execution Mode เงียบ ๆ
+Skill ไม่ได้สร้าง Native Subagent, Permission หรือ Model Configuration เอง หาก Runtime ไม่รองรับให้แจ้งและขอทางเลือกใหม่ ห้ามสร้าง Worker จำลองหรือให้ Lead กลับไป Implement หลัง Delegate
 
 ## 4. ตัวอย่างการเรียกใช้งาน Skill
 

@@ -1,6 +1,6 @@
 # Installation — Adaptive Agent Orchestrator
 
-**Version 1.0 — Released** · [ภาษาไทย](INSTALLATION.th.md) · [Repository](https://github.com/mejkkk/adaptive-agent-orchestrator)
+**Version 1.1 — Released** · [ภาษาไทย](INSTALLATION.th.md) · [Repository](https://github.com/mejkkk/adaptive-agent-orchestrator)
 
 Install the **source directory** `skill/adaptive-agent-orchestrator/` from GitHub. No prebuilt package is required.
 
@@ -139,7 +139,7 @@ Restart the agent session or reload Skills if necessary. Check its Skills list/c
 
 ## 7. Invocation
 
-Prepare requirements and/or an implementation plan before activating the Skill.
+Prepare requirements and/or an implementation plan before activating the Skill. In v1.1 the Lead proposes **Initial Workers** and **Maximum Workers** for approval; justified later delegation/scaling is allowed within the approved cumulative Maximum. After delegation Lead never implements itself. Maximum above the soft guardrail of five requires specific justification. See [CHANGELOG.md](CHANGELOG.md).
 
 ### Standard prompt template
 

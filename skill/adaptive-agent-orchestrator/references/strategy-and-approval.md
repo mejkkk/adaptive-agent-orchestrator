@@ -2,49 +2,70 @@
 
 ## Purpose
 
-Select the simplest credible execution approach for the already scoped task. The user decides whether to proceed after seeing an explicit strategy. Avoid assuming that a long plan always needs many agents.
+Select the smallest credible execution approach for an already scoped task. Require user approval of a clear execution boundary before implementing, then permit reasonable adaptation within that approved boundary.
 
-## Evaluate in this order
+## Execution modes
 
-1. **Feasibility:** Can the current session safely accomplish the task with available permissions, tools, context, and budget? Identify missing runtime capabilities. An unusable role/model cannot be treated as available.
-2. **Dependencies:** Are subtasks independent, or will Workers spend most of their time waiting on shared files and decisions?
-3. **Value of delegation:** Assess specialist expertise, isolation of context, independent review, likely elapsed-time reduction, quality/risk benefits, and costs of coordinating/merging.
-4. **Choose mode:**
-   - `SOLO`: Direct implementation is simpler and no clear benefit from delegation.
-   - `DELEGATED`: One specialist or one independent executor offers a meaningful benefit while Lead focuses on oversight/review.
-   - `MULTI_AGENT`: Two or more workers offer distinct roles or safely parallelizable tasks with measurable upside.
-5. **Cap size:** Propose initial count and maximum authorized concurrent or total Workers separately. A task with 10 sequential steps does not imply 10 Workers. Include a shared-file integration strategy.
-6. **Model/Effort:** Start with user preference (e.g., Luna with Max Effort), check actual availability and suitability by role, then propose precise alternatives with reasons. Treat wording like "prefer" as negotiable and "only" as a hard limit. State unknown actual values as `UNVERIFIED` rather than guessing. A stronger label does not guarantee a better result.
-7. **Safety:** Define which actions are read-only, mutating, remote, sensitive, destructive or production-facing, and when new user approval is mandatory.
+- `SOLO`: **0 Workers**; Lead implements and verifies.
+- `DELEGATED`: **1+ Workers**; Workers implement; Lead plans, coordinates, reviews and directly inspects evidence. Multi-Agent (2+ Workers) and parallel execution are **styles** of DELEGATED, not separate modes.
+- **One-way delegation:** After any Worker is assigned implementation, Lead must not resume implementation in this execution, even if all Workers have finished, failed or become inactive.
+- A SOLO execution may transition to DELEGATED without another approval only if its **approved Maximum Workers is positive**, cumulative capacity remains, the work is beneficial and native delegation is available. With Maximum = 0, obtain new approval first.
 
-## Required Execution Strategy Proposal
+## Evaluation
 
-Before implementation or execution-worker creation, present at least:
+1. **Feasibility:** Check source requirements/plan, native Worker tools, permissions and runtime model/effort availability. Do not pretend unsupported settings are active.
+2. **Dependencies:** Break down work, identify independent tasks, file conflicts, critical path and integration owner.
+3. **Benefit:** Compare specialization, independent verification, context separation and parallel opportunities against coordination, risk and cost.
+4. **Initial Workers:** Propose the smallest number actually needed at start, including zero for appropriate SOLO tasks.
+5. **Maximum Workers:** Determine a defensible cumulative ceiling from initial demand plus **specific plausible future work**, specialist needs, replacements or conditional fresh-worker escalation. Avoid arbitrary large buffers.
+6. **Model/Effort:** Distinguish preferences from hard requirements, verify availability per Worker and mark unknown actual settings `UNVERIFIED`.
+7. **Safety:** Internally plan allowed files/actions, shared ownership, critical verification, bounded retries, budget/resource and separate high-risk approval requirements.
 
-- **Proposal ID or revision**, summarized goal and accepted source requirements/plan (include unresolved assumptions).
-- **Recommendation + rationale:** `SOLO`, `DELEGATED`, or `MULTI_AGENT`; why this mode beats plausible alternatives given cost/time/quality/risk. For SOLO explicitly say no Subagent is needed. If a single Worker is better, recommend one.
-- **Task breakdown/dependency graph**: tasks, owner, dependencies, critical path, safe parallel opportunities, planned sequence.
-- **Worker matrix** (if any): role, specific responsibility, initial instance count, model, effort, availability/actual-verification status, tools, file ownership, allowed operations, and output checks.
-- **Execution envelope:** initial and maximum authorized Workers, max concurrency, reasonable time/token/cost budget if known (otherwise label `NOT SET`), platform and permission limitations.
-- **Lead verification:** at least one exact critical check on the real outcome, what access is required, what will be delegated if Lead cannot perform it; additional critical checks for high-risk work.
-- **Failure policy:** original executor's one correction, optional new-worker one correction, triggers that stop early, preauthorization (or lack thereof) for a SOLO-to-WORKER fallback or other escalation.
-- **User approval question:** explicitly request `Approve`, `Request changes`, or `Cancel`. Do not start work while waiting.
+## Worker Capacity Planning
 
-If a user asks for different roles, models, worker counts, parallelism, or budgets, examine whether they are safe and useful; explain objections and tradeoffs rather than obeying blindly. An updated recommendation requires an updated approval.
+- **Initial Workers**: number of Worker instances planned at execution start; integer `>= 0`.
+- **Maximum Approved Workers**: total **distinct Worker instances created cumulatively in one execution**, including additional, replacement, verification and fresh escalation Workers. Must be `>= Initial Workers`. Each newly spawned instance consumes one slot permanently, even after it finishes. Reusing that same instance consumes no new slot.
+- `Initial = 0, Maximum = 0` is a valid SOLO-only proposal. `Initial = 0, Maximum > 0` allows SOLO initially and preauthorizes a justified one-way transition later.
+- **Soft guardrail: five Workers.** Prefer small task-justified ceilings. **Maximum > 5 requires a concrete explanation** of workstreams/contingencies and why fewer Workers are inadequate. Five is neither a hard limit nor the default value to request for every task.
+- Maximum is an **authorization ceiling**, not a Worker allocation target. Never pad Maximum merely to avoid later user approval or spawn extra Workers because capacity remains.
+- Do not display a separate **Maximum Concurrent Workers** in the ordinary proposal. Actual concurrent use must obey runtime constraints, cumulative cap, dependencies and permission/file-safety boundaries; no unlimited parallelism is implied.
+
+## Required Execution Strategy Proposal (user-facing)
+
+Present a **concise** approval proposal containing:
+
+1. **Task / Source:** short objective and referenced requirements or implementation plan.
+2. **Initial Workers / Maximum Workers:** both numbers, and short rationale for Maximum (specific detail mandatory above five).
+3. **Initial Worker Configuration:** role, requested model and effort for **each initial Worker**, when Initial > 0. For Initial = 0 show `None`. Clearly mark unverified settings.
+4. **Execution Approach:** brief division of work, integration and Lead verification, plus any material risk/runtime capability issue that matters for approval.
+5. **User decision:** `Approve`, `Request Changes`, or `Cancel`.
+
+Do **not** routinely display separate fields for Initial Mode, Allowed Modes, Dynamic Scaling, Maximum Concurrency, generic Resource Budget or detailed Task Contracts. Mode follows Worker count and scaling follows this standing policy. This is a presentation rule, **not** permission to omit internal safety checks or conceal material risks or non-standard constraints.
+
+The Lead must internally retain task breakdown and dependencies, role/file ownership, permission boundaries, acceptance criteria, direct Lead critical checks, retry and escalation ceilings, production/high-risk gates, and any applicable budgets or runtime limits.
+
+## Dynamic Worker Scaling
+
+- After strategy approval, the Lead may add Workers **without a new user-approval pause** when the cumulative created count stays `<= Maximum Approved Workers` and scope, task, model hard constraints, permissions, resource and risk boundaries are unchanged.
+- Any specialist role must remain inside approved task/responsibility and least-privilege boundaries. A newly risky role or permissions increase needs explicit re-approval even if under Maximum.
+- Scale only for justified unfinished work, useful independent checks, specialization or recoveries. Verify task independence, available runtime capacity and integration safety first. Do not scale just because spare slots exist.
+- Notify the user for each newly created Worker: instance number, role, requested or confirmed model, effort (or `UNVERIFIED`), reason and **cumulative count / Maximum**. Within the approved envelope this notice is informational, not another approval gate; if real-time notices cannot be emitted, record it in the next progress or final report.
+- Reusing a Worker instance does not consume another slot. Ending a Worker never resets the cumulative count. Record scaling rationale for handoff.
+- **SOLO → DELEGATED** is authorized when Maximum > 0, new capacity remains and delegation is beneficial/feasible. The transition is **one-way**: after delegating implementation, Lead must not return to code/config changes, state-changing tests, deployment or other implementation.
+- When Maximum or runtime capacity is exhausted, do not create a Worker. Replan with existing Workers when safe or ask for a revised approval. Do not silently move delegated implementation back to Lead.
 
 ## Authorization state machine
 
 `PREPARING` → `PROPOSED` → `APPROVED` → `EXECUTING` → `VERIFYING` → `COMPLETE | PARTIAL | BLOCKED | FAILED`
 
-- `PROPOSED` may go back to `PREPARING` when the user requests changes.
-- `APPROVED` is reached only after explicit user confirmation referencing the currently proposed strategy. Invoking the skill or asking "start" before seeing a proposal does **not** skip this gate.
-- When execution needs scope, model hard-constraint, permission, worker ceiling, budget, or risky-operation changes, pause at a **new proposal/approval** gate; do not quietly mutate the approved plan.
-- Approval to execute ordinary code is not standing approval for production deployment, deletion, credential access or similarly high-impact actions.
-- If real native subagents are unavailable, do not mimic them. Explain and propose a revised SOLO strategy for approval or stop.
+- Implementation, mutating tests and execution-Worker creation require explicit approval of the current strategy. Requests to revise are not approval.
+- Scaling or SOLO → DELEGATED **inside** the approved cumulative ceiling and boundaries needs no further approval. Increases beyond any approved ceiling, permission/role-risk expansion, scope changes and resource overages require re-approval.
+- Production deployment, destructive operations, credential access, new external access or similarly high-impact operations still require their own explicit authorization; approval of ordinary code execution is not standing approval for them.
+- If real native Workers are unavailable, disclose it; never pretend separate agents exist. Offer a revised safe strategy or stop. If the execution has already delegated, Lead must not implement as fallback.
 
-## Preference versus hard constraint
+## Preferences and hard constraints
 
-- "Prefer Luna at Max Effort for workers" → use it as the first candidate; offer different settings by role when justified and supported.
-- "Use only Luna; do not change models" → hard constraint; if unsupported, ask for a new decision rather than switch without permission.
-- "Use 3 Workers" → interpret as a user request. If that is inefficient or conflicts with safe concurrency, explain why and propose 1–2 or SOLO. Wait for approval.
-- If a model or effort cannot be verified by the runtime, say so. Do not claim a configuration was applied just because it was included in the task prompt.
+- "Prefer Luna at Max Effort" is a preference, subject to real availability and role fit.
+- "Use only Luna" is a hard constraint. If unsupported, ask rather than silently substitute.
+- "Use 3 Workers" is input for evaluation; explain a smaller/better plan when justified and obtain approval.
+- Treat unverifiable actual model/effort settings as `UNVERIFIED`, never as confirmed.
