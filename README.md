@@ -18,8 +18,8 @@ The Skill stores **orchestration policy only**. Project requirements and impleme
 
 | Document | Purpose |
 |---|---|
-| [Workflow](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md) | Complete five-phase operational workflow with Mermaid diagrams (Thai) |
-| [Workflow source-format text](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_ORIGINAL.txt) | Companion source-format copy of the same released workflow |
+| [Workflow (English)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md) | Complete five-phase operational workflow with Mermaid diagrams |
+| [Workflow (ภาษาไทย)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md) | Complete Thai-language version with the same Mermaid diagrams |
 | [Installation (English)](INSTALLATION.md) | Clone, pull, install, verify and invoke |
 | [การติดตั้ง (ภาษาไทย)](INSTALLATION.th.md) | Thai installation guide |
 | [Skill entrypoint](skill/adaptive-agent-orchestrator/SKILL.md) | Authoritative English-language Skill policy |
