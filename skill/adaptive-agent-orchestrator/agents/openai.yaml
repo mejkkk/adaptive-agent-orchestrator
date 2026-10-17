@@ -1,0 +1,5 @@
+interface:
+  display_name: "Adaptive Agent Orchestrator"
+  short_description: "Approve SOLO or delegated execution, verify and bound retries"
+policy:
+  allow_implicit_invocation: false
