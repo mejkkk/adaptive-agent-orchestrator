@@ -18,8 +18,8 @@ Skill เก็บเฉพาะกฎ Orchestration โดยไม่มี R
 
 | เอกสาร | รายละเอียด |
 |---|---|
-| [Adaptive Agent Orchestrator Workflow](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md) | Workflow ทั้ง 5 Phases พร้อม Mermaid |
-| [Workflow Source Format](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_ORIGINAL.txt) | ฉบับข้อความต้นทางของ Workflow เวอร์ชันใช้งานจริง |
+| [Adaptive Agent Orchestrator Workflow (English)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md) | Workflow ภาษาอังกฤษครบ 5 Phases พร้อม Mermaid |
+| [Adaptive Agent Orchestrator Workflow (ภาษาไทย)](docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md) | Workflow ภาษาไทยครบ 5 Phases พร้อม Mermaid |
 | [Installation Guide (English)](INSTALLATION.md) | วิธี Clone, Pull และติดตั้ง |
 | [คู่มือติดตั้งภาษาไทย](INSTALLATION.th.md) | ขั้นตอนภาษาไทย |
 | [SKILL.md](skill/adaptive-agent-orchestrator/SKILL.md) | Orchestration Policy ภาษาอังกฤษ |
