@@ -1,20 +1,23 @@
-# เผยแพร่ Repository ไปยัง GitHub
+# Maintaining the repository
 
-Repository นี้ได้รับการสร้างแล้วที่ https://github.com/mejkkk/adaptive-agent-orchestrator
+**Adaptive Agent Orchestrator v1.0 — Released**
 
-## Update ผ่าน Git CLI
+The public repository is https://github.com/mejkkk/adaptive-agent-orchestrator.
+
+To update your local checkout and publish documentation changes:
 
 ```bash
 git clone https://github.com/mejkkk/adaptive-agent-orchestrator.git
 cd adaptive-agent-orchestrator
-# แก้ไฟล์ตามที่ต้องการแล้ว:
+git pull --ff-only origin main
+# Edit files, review diffs, and then:
 git add .
-git commit -m "Update orchestrator skill"
+git commit -m "Update documentation"
 git push origin main
 ```
 
-ตรวจสอบว่ามี `README.md`, `INSTALLATION.md`, `AGENTS.md`, `docs/`, `skill/adaptive-agent-orchestrator/SKILL.md`, `skill/adaptive-agent-orchestrator/agents/openai.yaml` และไฟล์อ้างอิง 3 ไฟล์
+Documentation is published in English primarily (`README.md`, `INSTALLATION.md`) and Thai companion files (`README.th.md`, `INSTALLATION.th.md`).
 
-Full Workflow ต้นฉบับที่ `docs/FULL_WORKFLOW_FINAL_DESIGN_REVIEW_ORIGINAL.txt` เป็นบันทึกที่ห้ามแก้ไขตามข้อกำหนดของเจ้าของ Repository
+The operational workflow is available as `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW.md` and `docs/ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_ORIGINAL.txt`. Keep the two versions synchronized if the workflow changes; retain the semantics of all five phases.
 
-หากต้องการเผยแพร่ไฟล์ `skill.zip` แบบไบนารี ให้อัปโหลดด้วย Git CLI หรือ GitHub Releases; GitHub Connector บางชุดรองรับเฉพาะไฟล์ UTF-8 ขณะส่งเนื้อหาไปยัง Contents API.
+The authoritative English-language Skill policy remains in `skill/adaptive-agent-orchestrator/`. No prebuilt package is required for installation; use Git clone/pull and copy the directory to a supported Skills location.
