@@ -1,60 +1,29 @@
-# ติดตั้ง Adaptive Agent Orchestrator จาก GitHub
+# Install from GitHub
 
-Repository: https://github.com/mejkkk/adaptive-agent-orchestrator
+**Adaptive Agent Orchestrator v1.0 — Released** · [English installation](../INSTALLATION.md) · [ภาษาไทย](../INSTALLATION.th.md)
 
-โฟลเดอร์ Skill ที่ต้องใช้: `skill/adaptive-agent-orchestrator/` ซึ่งมี `SKILL.md`, `agents/openai.yaml` และ `references/`
-
-## ใช้ Git clone
+Clone the source once:
 
 ```bash
 git clone https://github.com/mejkkk/adaptive-agent-orchestrator.git
+```
+
+On subsequent updates:
+
+```bash
 cd adaptive-agent-orchestrator
+git pull --ff-only origin main
 ```
 
-### Codex (ระดับ Project)
+Install the source directory `skill/adaptive-agent-orchestrator/` in your target project. Codex and Antigravity normally use `.agents/skills/`; Claude Code uses `.claude/skills/`:
 
 ```bash
-mkdir -p .agents/skills
-cp -R skill/adaptive-agent-orchestrator .agents/skills/
+PROJECT="/path/to/your-project"
+mkdir -p "$PROJECT/.agents/skills" "$PROJECT/.claude/skills"
+cp -R skill/adaptive-agent-orchestrator "$PROJECT/.agents/skills/"
+cp -R skill/adaptive-agent-orchestrator "$PROJECT/.claude/skills/"
 ```
 
-### Claude Code (ระดับ Project)
+If you have copied the Skill to a project, **repeat the copy after every `git pull`** to deploy the updated source.
 
-```bash
-mkdir -p .claude/skills
-cp -R skill/adaptive-agent-orchestrator .claude/skills/
-```
-
-### Antigravity (ระดับ Project)
-
-```bash
-mkdir -p .agents/skills
-cp -R skill/adaptive-agent-orchestrator .agents/skills/
-```
-
-สำหรับ Windows PowerShell:
-
-```powershell
-git clone https://github.com/mejkkk/adaptive-agent-orchestrator.git
-cd adaptive-agent-orchestrator
-New-Item -ItemType Directory -Force .agents\skills
-Copy-Item .\skill\adaptive-agent-orchestrator .agents\skills\ -Recurse -Force
-New-Item -ItemType Directory -Force .claude\skills
-Copy-Item .\skill\adaptive-agent-orchestrator .claude\skills\ -Recurse -Force
-```
-
-ติดตั้ง Skill ใน Project ที่ต้องการใช้งาน หาก clone อยู่ใน Project repository ของ Skill เอง ตัวอย่างข้างต้นจะติดตั้งลงใน Project ปัจจุบัน ให้ปรับเส้นทางต้นทางและปลายทางก่อนใช้กับ Project อื่น
-
-## เรียกใช้
-
-Codex: `$adaptive-agent-orchestrator`
-
-Claude Code / Antigravity: `/adaptive-agent-orchestrator` (ตาม Runtime ที่รองรับ)
-
-```text
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
-Model Preference: Luna, Max Effort
-```
-
-ตรวจข้อจำกัด Model/Effort และ Subagent Tools ของแพลตฟอร์มก่อนใช้งานจริง อ่านคำอธิบายเพิ่มเติมที่ [INSTALLATION.md](../INSTALLATION.md)
+For tested-by-user Windows PowerShell commands, global paths, compatibility notes and invocation examples, consult the full [Installation Guide](../INSTALLATION.md) or [คู่มือติดตั้ง](../INSTALLATION.th.md).
