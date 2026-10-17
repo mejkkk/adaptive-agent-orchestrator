@@ -40,19 +40,53 @@ cp -R adaptive-agent-orchestrator/skill/adaptive-agent-orchestrator /path/to/pro
 
 Use `.claude/skills/` for Claude Code. See [INSTALLATION.md](INSTALLATION.md) for Windows commands, global installation, updates using `git pull`, and detailed platform paths.
 
-**Codex invocation**
+## Prompt examples
+
+### Standard prompt template
 
 ```text
-$adaptive-agent-orchestrator
+/adaptive-agent-orchestrator
 
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
-Model preference: Luna, Max Effort
+Execute based on: <requirements.md or implementation-plan.md>
+
+<Optional Overrides>
+Model Preference: <optional model and effort preference>
+Additional Instructions: <optional task-specific instructions>
 ```
 
-**Claude Code / Antigravity invocation (where supported)**: `/adaptive-agent-orchestrator`
+The **Optional Overrides** block may be omitted entirely. Use the supplied requirements and/or implementation plan as the input; project-specific task requirements are not stored in the Skill.
 
-The first output is an **Execution Strategy Proposal**, not immediate implementation. Approve that proposal explicitly to start.
+### Example 1 — Standard execution (no overrides)
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on: implementation-plan.md
+```
+
+The Lead reviews the available plan and requirements, breaks down tasks and dependencies, recommends SOLO or Subagents, and presents the execution strategy for approval.
+
+### Example 2 — Execution with overrides
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on:
+- requirements.md
+- implementation-plan.md
+
+Model Preference: Prefer Luna with Max Effort.
+
+Additional Instructions:
+- Prioritize security verification.
+- Do not deploy to production.
+```
+
+`Prefer Luna with Max Effort` is a **preference**, not a fixed model constraint; the Lead may justify other supported settings. `Do not deploy to production` is a **hard restriction**. Verification is prioritized as requested. Runtime model and effort availability must be checked.
+
+**Platform note:** Examples use `/adaptive-agent-orchestrator` for Claude Code and Antigravity where supported. **Codex uses `$adaptive-agent-orchestrator`** instead.
+
+**Approval gate:** `Execute based on` begins strategy review, **not immediate implementation**. The Lead must present the execution strategy and wait for explicit approval before executing or spawning execution Workers.
 
 ## Runtime limits
 
