@@ -1,6 +1,6 @@
 # Adaptive Agent Orchestrator Workflow
 
-**Version 1.0 — Released**
+**Version 1.0 — Released** · **ภาษาไทย** · [English](ADAPTIVE_AGENT_ORCHESTRATOR_WORKFLOW_EN.md)
 
 **Adaptive Agent Orchestrator** เป็น Skill ที่ใช้งานจริงสำหรับเลือกและควบคุมการทำงานแบบ SOLO, DELEGATED และ MULTI-AGENT โดยรองรับ Codex, Claude Code และ Antigravity ตามความสามารถของแต่ละแพลตฟอร์ม
 
