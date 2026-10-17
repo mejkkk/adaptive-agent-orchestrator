@@ -139,29 +139,53 @@ Restart the agent session or reload Skills if necessary. Check its Skills list/c
 
 ## 7. Invocation
 
-Prepare your requirements and plan before activating the Skill.
+Prepare requirements and/or an implementation plan before activating the Skill.
 
-**Codex**
-
-```text
-$adaptive-agent-orchestrator
-
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
-Model preference: Luna, Max Effort
-```
-
-**Claude Code / Antigravity**
+### Standard prompt template
 
 ```text
 /adaptive-agent-orchestrator
 
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
-Model preference: Luna, Max Effort
+Execute based on: <requirements.md or implementation-plan.md>
+
+<Optional Overrides>
+Model Preference: <optional model and effort preference>
+Additional Instructions: <optional task-specific instructions>
 ```
 
-The Skill must show an Execution Strategy Proposal (SOLO, DELEGATED, or MULTI-AGENT) and **wait for explicit approval before implementation**. You may request different workers, roles, models, or effort levels first.
+The **Optional Overrides** block may be omitted entirely. Use the supplied requirements and/or implementation plan as the input; project-specific task requirements are not stored in the Skill.
+
+### Example 1 — Standard execution (no overrides)
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on: implementation-plan.md
+```
+
+The Lead reviews the available plan and requirements, breaks down tasks and dependencies, recommends SOLO or Subagents, and presents the execution strategy for approval.
+
+### Example 2 — Execution with overrides
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on:
+- requirements.md
+- implementation-plan.md
+
+Model Preference: Prefer Luna with Max Effort.
+
+Additional Instructions:
+- Prioritize security verification.
+- Do not deploy to production.
+```
+
+`Prefer Luna with Max Effort` is a **preference**, not a fixed model constraint; the Lead may justify other supported settings. `Do not deploy to production` is a **hard restriction**. Verification is prioritized as requested. Runtime model and effort availability must be checked.
+
+**Platform note:** Examples use `/adaptive-agent-orchestrator` for Claude Code and Antigravity where supported. **Codex uses `$adaptive-agent-orchestrator`** instead.
+
+**Approval gate:** `Execute based on` begins strategy review, **not immediate implementation**. The Lead must present the execution strategy and wait for explicit approval before executing or spawning execution Workers.
 
 ## 8. Safety and compatibility
 
