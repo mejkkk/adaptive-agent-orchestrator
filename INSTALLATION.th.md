@@ -117,19 +117,51 @@ Copy-Item -Path (Join-Path $Source '*') -Destination $ClaudeDest -Recurse -Force
 
 ตรวจสอบว่ามีไฟล์ `.../skills/adaptive-agent-orchestrator/SKILL.md` และไฟล์ใน `references/` ครบ ถ้าไม่พบ Skill ให้เริ่ม Session ใหม่หรือ Reload Skills
 
-ตัวอย่าง Codex:
+### Standard Prompt Template
 
 ```text
-$adaptive-agent-orchestrator
+/adaptive-agent-orchestrator
 
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
-Model preference: Luna, Max Effort
+Execute based on: <requirements.md or implementation-plan.md>
+
+<Optional Overrides>
+Model Preference: <optional model and effort preference>
+Additional Instructions: <optional task-specific instructions>
 ```
 
-Claude Code และ Antigravity (ถ้ารองรับ) ให้ใช้ `/adaptive-agent-orchestrator` แทน
+ส่วน **Optional Overrides** ไม่จำเป็นต้องระบุ หากไม่มีคำสั่งเพิ่มเติม สามารถตัดออกทั้งหมดได้ โดย Requirement และ Plan ของแต่ละงานยังคงอยู่ภายนอก Skill
 
-Skill ต้องเสนอ Execution Strategy และ **รอผู้ใช้ยืนยันก่อน Implementation** ทั้งกรณี SOLO และ Multi-Agent
+### Example 1 — Standard Execution (No Override)
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on: implementation-plan.md
+```
+
+Lead จะตรวจ Requirement/Plan, วิเคราะห์ Task Breakdown และ Dependencies, เลือก SOLO หรือ Subagents ตามความเหมาะสม แล้วเสนอ Execution Strategy เพื่อรอการอนุมัติ
+
+### Example 2 — Execution with Overrides
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on:
+- requirements.md
+- implementation-plan.md
+
+Model Preference: Prefer Luna with Max Effort.
+
+Additional Instructions:
+- Prioritize security verification.
+- Do not deploy to production.
+```
+
+`Prefer Luna with Max Effort` เป็น **Preference** ไม่ใช่ข้อบังคับให้ใช้ Model นี้เท่านั้น Lead จึงเสนอทางเลือกที่เหมาะสมกว่าได้พร้อมเหตุผลและต้องตรวจความพร้อมใช้งานของ Runtime ส่วน `Do not deploy to production` เป็น **ข้อห้ามที่ต้องปฏิบัติตาม** และให้ความสำคัญกับ Security Verification ตามคำสั่ง
+
+**การเรียกใช้บนแพลตฟอร์ม:** ตัวอย่างใช้ `/adaptive-agent-orchestrator` สำหรับ Claude Code และ Antigravity ที่รองรับ ส่วน **Codex ใช้ `$adaptive-agent-orchestrator`** แทน
+
+**Mandatory Approval:** คำว่า `Execute based on` เริ่มกระบวนการวิเคราะห์ Strategy ไม่ใช่คำสั่งข้ามขั้นตอนอนุมัติ Lead ต้องแสดง Execution Strategy แล้วรอผู้ใช้ยืนยันก่อนเริ่ม Implementation หรือ Spawn Execution Workers
 
 ## 7. ข้อจำกัด
 
