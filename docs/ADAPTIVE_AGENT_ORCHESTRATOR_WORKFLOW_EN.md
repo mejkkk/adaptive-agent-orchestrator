@@ -266,20 +266,52 @@ The following policies are defined in `SKILL.md` and the Skill's reference docum
 
 ## 4. Example Skill Invocation
 
-After installing the Skill, invoke it with your requirements and implementation plan. The following example is for Claude Code or Antigravity where the slash command is supported. For Codex, use `$adaptive-agent-orchestrator`.
+Invoke the installed Skill using the existing requirements and/or implementation plan, without repeating its orchestration policies in every prompt.
 
-**Example Invocation**
+### Standard prompt template
 
 ```text
 /adaptive-agent-orchestrator
 
-Requirements: requirements.md
-Implementation Plan: implementation-plan.md
+Execute based on: <requirements.md or implementation-plan.md>
 
-Model Preference: Luna, Max Effort
-
-Analyze the Execution Strategy and present it for my review
-before starting implementation.
+<Optional Overrides>
+Model Preference: <optional model and effort preference>
+Additional Instructions: <optional task-specific instructions>
 ```
 
-The Skill then follows all five phases subject to the approved strategy and available permissions. Users do not need to repeat the orchestration policy in their invocation prompt.
+The **Optional Overrides** block may be omitted entirely. Use the supplied requirements and/or implementation plan as the input; project-specific task requirements are not stored in the Skill.
+
+### Example 1 — Standard execution (no overrides)
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on: implementation-plan.md
+```
+
+The Lead reviews the available plan and requirements, breaks down tasks and dependencies, recommends SOLO or Subagents, and presents the execution strategy for approval.
+
+### Example 2 — Execution with overrides
+
+```text
+/adaptive-agent-orchestrator
+
+Execute based on:
+- requirements.md
+- implementation-plan.md
+
+Model Preference: Prefer Luna with Max Effort.
+
+Additional Instructions:
+- Prioritize security verification.
+- Do not deploy to production.
+```
+
+`Prefer Luna with Max Effort` is a **preference**, not a fixed model constraint; the Lead may justify other supported settings. `Do not deploy to production` is a **hard restriction**. Verification is prioritized as requested. Runtime model and effort availability must be checked.
+
+**Platform note:** Examples use `/adaptive-agent-orchestrator` for Claude Code and Antigravity where supported. **Codex uses `$adaptive-agent-orchestrator`** instead.
+
+**Approval gate:** `Execute based on` begins strategy review, **not immediate implementation**. The Lead must present the execution strategy and wait for explicit approval before executing or spawning execution Workers.
+
+After approval, the Skill follows the complete five-phase workflow within the authorized scope and runtime permissions.
